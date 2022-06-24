@@ -1,17 +1,20 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction,Unsubscribe } from '@reduxjs/toolkit';
+import { RootState, AppDispatch, AppListenerEffectAPI, AppStartListening } from '../app/store';
 import { IPost } from "../models/post-model";
 import { getPosts, createPost, deletePost } from "../api/post";
 import { ICreatePostParams } from "../models/axios-model";
 
 interface PostListSliceState {
   postList: IPost[];
-  errors: [] | undefined;
-  countDown: number | undefined;
+  fetchColor:"#ffff"|"#0000"
+  errors: any[] ;
+  countDown: number |null
 }
 const initialState: PostListSliceState = {
   postList: [],
+  fetchColor:"#ffff",
   errors: [],
-  countDown: undefined,
+  countDown: null,
 };
 
 export const fetchPostsThunk = createAsyncThunk(
@@ -45,6 +48,9 @@ export const postListSlice = createSlice({
     undoDelete: (state, action: PayloadAction) => {
       console.log("undo delete");
     },
+    setColor:(state,action)=>{
+      state.fetchColor=action.payload
+    }
   },
   extraReducers: (builder) => {
     builder.addCase(fetchPostsThunk.fulfilled, (state, { payload }) => {
@@ -78,4 +84,33 @@ export const postListSlice = createSlice({
   },
 });
 
-export default postListSlice.reducer;
+ export function setupPostsListener(startListening:AppStartListening):Unsubscribe {
+  const subscriptions = [
+    startListening({
+      predicate: (action, currentState, prevState) => {
+       return fetchPostsThunk.fulfilled.match(action)
+      },
+      effect: async (action, {dispatch}) => {
+        //run whatever aditional side-effect-y logic
+        console.log("this is running right" + action.payload);
+    
+        //Cancel other running instances
+        // listenerApi.cancelActiveListeners()
+    
+        // run async logic
+        dispatch(postListSlice.actions.setColor("#0000"))
+    
+        //Pause until action dispatched or state changed
+      
+    }
+  })
+  ]
+
+  return () => {
+    subscriptions.forEach((unsubscribe) => unsubscribe());
+  };
+ }
+
+const {actions,reducer} = postListSlice;
+export const {undoDelete,setColor} = actions
+export default reducer

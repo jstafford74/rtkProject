@@ -1,35 +1,41 @@
-import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
+import {
+  configureStore,
+  createListenerMiddleware,
+  addListener,
+  TypedStartListening,
+  TypedAddListener, /* , ThunkAction, Action */
+  ListenerEffectAPI,
+} from '@reduxjs/toolkit';
 import { getPosts } from "../api/post";
-import postsReducer, { deletePostThunk,postListSlice. } from "../features/postListSlice";
+import postsReducer, { deletePostThunk,postListSlice} from "../features/postListSlice";
 
-const listenMiddleware = createListenerMiddleware();
+const listenMiddlewareInstance = createListenerMiddleware();
  //test
-listenMiddleware.startListening({
-  actionCreator: postListSlice
-  effect: async (action, listenerApi) => {
-    //run whatever aditional side-effect-y logic
-    console.log("this is running right" + action.payload.text);
-
-    //Cancel other running instances
-    // listenerApi.cancelActiveListeners()
-
-    // run async logic
-    const data = await getPosts();
-
-    //Pause until action dispatched or state changed
-    if (await listenerApi.condition()) {
-      listenerApi.dispatch(deletePostThunk());
-      listenerApi.unsubscribe();
-  },
-});
-
-export const store = configureStore({
+ export const store = configureStore({
   reducer: {
     postList: postsReducer,
   },
+  middleware: (getDefaultMiddleware)=> 
+  getDefaultMiddleware({
+    serializableCheck: false,
+  }).concat(
+    listenMiddlewareInstance.middleware,
+  )
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+
+
 export const selectPosts = (state: RootState) => state.postList.postList;
 export const getCountDown = (state: RootState) => state.postList.countDown;
+
+
+export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export type AppListenerEffectAPI = ListenerEffectAPI<RootState, AppDispatch>;
+export type AppStartListening = TypedStartListening<RootState, AppDispatch>;
+export type AppAddListener = TypedAddListener<RootState, AppDispatch>;
+
+export const startAppListening = listenMiddlewareInstance.startListening as AppStartListening;
+
+export const addAppListener = addListener as TypedAddListener<RootState, AppDispatch>;
+

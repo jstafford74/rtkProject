@@ -7,17 +7,24 @@ import {
   fetchPostsThunk,
   
 } from "../../features/postListSlice";
-import { selectPosts } from "../../app/store";
+import { selectPosts,RootState } from "../../app/store";
 import Post from "./Post";
+import { JsxEmit } from 'typescript';
 
 const Posts = () => {
   const dispatch = useAppDispatch();
-  const postList = useSelector(selectPosts);
+  const [postText, setPostText] = useState("");  
+  const {postList} = useSelector((state:RootState) => state.postList);
+
+
   useEffect(() => {
+    if(!postList.length){
     dispatch(fetchPostsThunk());
+    }
+
+
   }, []);
 
-  const [postText, setPostText] = useState("");
 
   const handlePostClick = () => {
     const id = Math.floor(Math.random() * 20);
@@ -30,7 +37,20 @@ const Posts = () => {
     setPostText("");
   };
 
-
+  let $postList:JSX.Element |  JSX.Element[]=  <p>No Posts available</p>;
+  if(postList?.length){
+    $postList = postList?.map((post) => (
+      <Post
+        userId={post.userId}
+        title={post.title}
+        body={post.body}
+        id={post.id}
+        key={post.id}
+      />
+    ))
+ 
+    }
+   
 
   return (
     <Fragment>
@@ -39,18 +59,7 @@ const Posts = () => {
           Feel free to post something to the board{" "}
         </h2>
         <div className="posts-items-container">
-          {postList ? (
-            postList?.map((post) => (
-              <Post
-                userId={post.userId}
-                title={post.title}
-                body={post.body}
-                id={post.id}
-              />
-            ))
-          ) : (
-            <p>No Posts available</p>
-          )}
+          {$postList}
         </div>
         <div className="posts-buttons-container">
           <input

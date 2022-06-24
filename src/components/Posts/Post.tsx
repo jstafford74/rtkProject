@@ -15,6 +15,9 @@ interface IPostProps {
 
 const Post = (props: IPostProps) => {
   const dispatch = useAppDispatch();
+
+  const countDown = useSelector(getCountDown)
+
   const handleDeletePostClick = () => {
     dispatch(deletePostThunk(props.id as number));
   };
@@ -35,7 +38,7 @@ const Post = (props: IPostProps) => {
         <h4>Body</h4>
         <p className="post-text">{props.body}</p>
       </div>
-      {useSelector(getCountDown) == undefined ? (
+      {countDown? (
         <button className="delete-post-btn" onClick={handleDeletePostClick}>
           Delete Post{" "}
           <span>
@@ -47,7 +50,7 @@ const Post = (props: IPostProps) => {
           Undo?
           <span>
             <Icon icon={"undo"} />
-            {useSelector(getCountDown)}
+            {countDown}
           </span>
         </button>
       )}
