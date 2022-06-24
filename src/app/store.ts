@@ -3,7 +3,7 @@ import { getPosts } from "../api/post";
 import postsReducer, { deletePostThunk,postListSlice. } from "../features/postListSlice";
 
 const listenMiddleware = createListenerMiddleware();
-
+ //test
 listenMiddleware.startListening({
   actionCreator: postListSlice
   effect: async (action, listenerApi) => {
